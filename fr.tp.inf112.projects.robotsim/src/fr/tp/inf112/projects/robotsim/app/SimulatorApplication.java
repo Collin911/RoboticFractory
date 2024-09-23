@@ -71,9 +71,10 @@ public class SimulatorApplication {
 
 		final FactoryPathFinder customPathFinder = new CustomDijkstraFactoryPathFinder(factory, 5);
 		final Robot robot2 = new Robot(factory, customPathFinder, new CircularShape(15, 5, 2), new Battery(10), "Robot 2");
-		robot2.addTarget(chargingStation);
+		// robot2.addTarget(chargingStation);
 		robot2.addTarget(machine1);
 		robot2.addTarget(machine2);
+		robot2.addTarget(chargingStation);
 		robot2.addTarget(new Conveyor(factory, conveyorShape, "Conveyor 1"));
 		
 		SwingUtilities.invokeLater(new Runnable() {
