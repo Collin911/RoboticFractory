@@ -149,11 +149,15 @@ public class Robot extends Component {
 				   										   nextPosition.getyCoordinate(),
 				   										   2,
 				   										   2);
+		// If there exists another mobile component on its way, just wait by returning null for the motion
+		/*
 		if (getFactory().hasMobileComponentAt(shape, this)) {
 			this.nextPosition = nextPosition;
 			
 			return null;
 		}
+		*/ 
+		//Simply comment this block out will remove the livelock while leaving the robot prone to collision
 
 		this.nextPosition = null;
 		
