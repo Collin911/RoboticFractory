@@ -32,8 +32,8 @@ public abstract class Component implements Figure, Serializable, Runnable {
 	}
 	
 	public void run() {
-		while(!this.isSimulationStarted()) {
-			this.behave();
+		while(isSimulationStarted()) {
+			behave();
 			try {
 				Thread.sleep(50);
 			}

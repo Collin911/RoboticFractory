@@ -157,7 +157,7 @@ public class Robot extends Component {
 			return null;
 		}
 		*/ 
-		//Simply comment this block out will remove the livelock while leaving the robot prone to collision
+		//Simply comment this block out will remove the live-lock while leaving the robot prone to collision
 
 		this.nextPosition = null;
 		

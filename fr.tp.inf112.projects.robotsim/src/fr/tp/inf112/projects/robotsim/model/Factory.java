@@ -3,6 +3,7 @@ package fr.tp.inf112.projects.robotsim.model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Collections; // To support synchronized list
 
 import fr.tp.inf112.projects.canvas.controller.Observable;
 import fr.tp.inf112.projects.canvas.controller.Observer;
@@ -102,8 +103,14 @@ public class Factory extends Component implements Canvas, Observable {
 		if (!isSimulationStarted()) {
 			this.simulationStarted = true;
 			notifyObservers();
+			
+			// Newly added code for only executing behave() once
+			if (isSimulationStarted()) {
+				behave();
+			}
+			// To be combined with the modified behave() of Factory class
 
-			while (isSimulationStarted()) {
+			/*while (isSimulationStarted()) {
 				behave();
 				
 				try {
@@ -112,7 +119,7 @@ public class Factory extends Component implements Canvas, Observable {
 				catch (final InterruptedException ex) {
 					System.err.println("Simulation was abruptely interrupted");
 				}
-			}
+			}*/
 		}
 	}
 
@@ -124,7 +131,44 @@ public class Factory extends Component implements Canvas, Observable {
 		}
 	}
 
+	// Newly added behave() method
 	@Override
+	public boolean behave() {
+		boolean behaved = true;
+		List<Thread> threads = new ArrayList<>();
+		
+		for (final Component component : getComponents()) {
+			// Create a Runnable for the component
+	        Runnable task = () -> {
+	            component.run();
+	        };	        
+	        //Same function without lambda
+	        /*Runnable task = new Runnable() {
+	            @Override
+	            public void run() {
+	                component.run();
+	            }
+	        };*/
+	        
+			Thread thr = new Thread(task);
+			threads.add(thr);
+			thr.start();
+		}		
+		// Wait for all threads to finish
+	    for (Thread thread : threads) {
+	        try {
+	            thread.join(); // Wait for each thread to finish
+	        } catch (InterruptedException e) {
+	        	behaved = false;
+	            e.printStackTrace();
+	        }
+	    }
+	    return behaved;
+	}
+	
+	
+	// Previously provided one
+	/*@Override
 	public boolean behave() {
 		boolean behaved = true;
 		
@@ -133,7 +177,7 @@ public class Factory extends Component implements Canvas, Observable {
 		}
 		
 		return behaved;
-	}
+	}*/
 	
 	@Override
 	public Style getStyle() {
