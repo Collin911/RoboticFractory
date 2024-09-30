@@ -107,9 +107,15 @@ public class Robot extends Component {
 	}
 	
 	private int moveToNextPathPosition() {
-		final Motion motion = computeMotion();
+		final Motion motion = computeMotion();	
+		int result = 0;
 		
-		final int displacement = motion == null ? 0 : motion.moveToTarget();
+		if(motion != null) {
+			boolean moveable = this.getFactory().checkMotionAvailability(motion);
+			result = moveable == false ? 0 : motion.moveToTarget();
+		}
+
+		final int displacement = result;
 			
 		notifyObservers();
 		

@@ -9,6 +9,7 @@ import fr.tp.inf112.projects.canvas.controller.Observer;
 import fr.tp.inf112.projects.canvas.model.Canvas;
 import fr.tp.inf112.projects.canvas.model.Figure;
 import fr.tp.inf112.projects.canvas.model.Style;
+import fr.tp.inf112.projects.robotsim.model.motion.Motion;
 import fr.tp.inf112.projects.robotsim.model.shapes.PositionedShape;
 import fr.tp.inf112.projects.robotsim.model.shapes.RectangularShape;
 
@@ -153,6 +154,18 @@ public class Factory extends Component implements Canvas, Observable {
 		}
 		
 		return behaved;
+	}
+	
+	public boolean checkMotionAvailability(Motion motion) {
+		boolean positionAvailable = true;
+		Position targetPosition = motion.getTargetPosition();
+		for(Component component : getComponents()) {
+			if(component.isMobile() && component.getPosition() == targetPosition) {
+				positionAvailable = false;
+				break;
+			}
+		}
+		return positionAvailable;
 	}
 	
 	@Override
