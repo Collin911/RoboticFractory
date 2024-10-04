@@ -16,6 +16,7 @@ import fr.tp.inf112.projects.robotsim.model.Door;
 import fr.tp.inf112.projects.robotsim.model.Factory;
 import fr.tp.inf112.projects.robotsim.model.FactoryPersistenceManager;
 import fr.tp.inf112.projects.robotsim.model.Machine;
+import fr.tp.inf112.projects.robotsim.model.RemotePersistenceManager;
 import fr.tp.inf112.projects.robotsim.model.Robot;
 import fr.tp.inf112.projects.robotsim.model.Room;
 import fr.tp.inf112.projects.robotsim.model.path.CustomDijkstraFactoryPathFinder;
