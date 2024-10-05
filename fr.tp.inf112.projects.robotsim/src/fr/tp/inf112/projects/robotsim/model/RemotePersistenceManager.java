@@ -1,7 +1,11 @@
 package fr.tp.inf112.projects.robotsim.model;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.*;
@@ -19,7 +23,40 @@ public class RemotePersistenceManager extends AbstractCanvasPersistenceManager {
 
 	@Override
 	public Canvas read(String canvasId) throws IOException {
-		// TODO Auto-generated method stub
+		String host = "localhost";
+		int port = 65500;
+		int timeout = 1000;
+		Socket socket = this.establishLink(host, port, timeout);
+		if (socket != null) {
+			try { // Send the CanvasId for request
+					OutputStream sockOutStream = socket.getOutputStream();
+					OutputStream bufOutStream = new BufferedOutputStream(sockOutStream);
+					ObjectOutputStream objOutStream = new ObjectOutputStream(bufOutStream);
+					
+					objOutStream.writeObject(canvasId);
+					objOutStream.flush();
+				}
+			catch (IOException ex) {
+				throw new IOException(ex);
+				}
+			try { // Read the object sent from the server
+					final InputStream inStream = socket.getInputStream();
+					final BufferedInputStream bufferedInputStream = new BufferedInputStream(inStream);
+					final ObjectInputStream objectInputStrteam = new ObjectInputStream(bufferedInputStream); 
+					return (Canvas) objectInputStrteam.readObject();
+				}
+			catch (ClassNotFoundException | IOException ex) {
+				throw new IOException(ex);
+				}
+			finally {
+				try {
+					socket.close();
+				}
+				catch(IOException ex) {
+					
+				}
+			}
+		}
 		return null;
 	}
 	
@@ -47,7 +84,7 @@ public class RemotePersistenceManager extends AbstractCanvasPersistenceManager {
 	public void persist(Canvas canvasModel) 
 	throws IOException{
 		String host = "localhost";
-		int port = 65530;
+		int port = 65500;
 		int timeout = 1000;
 		Socket socket = this.establishLink(host, port, timeout);
 		if (socket != null) {
@@ -60,6 +97,7 @@ public class RemotePersistenceManager extends AbstractCanvasPersistenceManager {
 			}			
 		}
 	}
+
 
 	@Override
 	public boolean delete(Canvas canvasModel) throws IOException {
