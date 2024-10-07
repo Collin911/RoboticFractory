@@ -13,6 +13,8 @@ import java.net.*;
 import fr.tp.inf112.projects.canvas.model.Canvas;
 import fr.tp.inf112.projects.canvas.model.CanvasChooser;
 import fr.tp.inf112.projects.canvas.model.impl.AbstractCanvasPersistenceManager;
+import fr.tp.inf112.projects.robotsim.remote.*;
+
 
 public class RemotePersistenceManager extends AbstractCanvasPersistenceManager {
 
@@ -23,79 +25,25 @@ public class RemotePersistenceManager extends AbstractCanvasPersistenceManager {
 
 	@Override
 	public Canvas read(String canvasId) throws IOException {
-		String host = "localhost";
-		int port = 65500;
-		int timeout = 1000;
-		Socket socket = this.establishLink(host, port, timeout);
-		if (socket != null) {
-			try { // Send the CanvasId for request
-					OutputStream sockOutStream = socket.getOutputStream();
-					OutputStream bufOutStream = new BufferedOutputStream(sockOutStream);
-					ObjectOutputStream objOutStream = new ObjectOutputStream(bufOutStream);
-					
-					objOutStream.writeObject(canvasId);
-					objOutStream.flush();
-				}
-			catch (IOException ex) {
-				throw new IOException(ex);
-				}
-			try { // Read the object sent from the server
-					final InputStream inStream = socket.getInputStream();
-					final BufferedInputStream bufferedInputStream = new BufferedInputStream(inStream);
-					final ObjectInputStream objectInputStrteam = new ObjectInputStream(bufferedInputStream); 
-					return (Canvas) objectInputStrteam.readObject();
-				}
-			catch (ClassNotFoundException | IOException ex) {
-				throw new IOException(ex);
-				}
-			finally {
-				try {
-					socket.close();
-				}
-				catch(IOException ex) {
-					
-				}
-			}
+		RemoteClientUtils client = new RemoteClientUtils("localhost", 65500, 1000);
+		Canvas result = null;
+		if (client != null) {
+			client.sendObject2Server(canvasId);
+			result =  (Canvas) client.recvObjectFromServer();
+			client.closeConnection();
 		}
-		return null;
+		return result;
 	}
 	
-	private Socket establishLink(String host, int port, int timeout) {
-		try {
-			InetAddress netAddr = InetAddress.getByName(host);
-			SocketAddress sockAddr = new InetSocketAddress(netAddr, port);
-			Socket socket = new Socket();
-			socket.connect(sockAddr, timeout);
-			return socket;
-		} catch (UnknownHostException e) {
-			System.out.println("Unknown host");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 * @throws IOException 
 	 */
 	@Override
-	public void persist(Canvas canvasModel) 
-	throws IOException{
-		String host = "localhost";
-		int port = 65500;
-		int timeout = 1000;
-		Socket socket = this.establishLink(host, port, timeout);
-		if (socket != null) {
-			try (
-				OutputStream sockOutStream = socket.getOutputStream();
-				OutputStream bufOutStream = new BufferedOutputStream(sockOutStream);
-				ObjectOutputStream objOutStream = new ObjectOutputStream(bufOutStream);
-			) {
-				objOutStream.writeObject(canvasModel);
-			}			
-		}
+	public void persist(Canvas canvasModel) throws IOException{
+		RemoteClientUtils client = new RemoteClientUtils("localhost", 65500, 1000);
+		client.sendObject2Server(canvasModel);
+		client.closeConnection();
 	}
 
 
