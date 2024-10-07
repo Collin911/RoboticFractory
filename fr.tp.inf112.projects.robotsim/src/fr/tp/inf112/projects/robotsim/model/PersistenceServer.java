@@ -1,6 +1,7 @@
 package fr.tp.inf112.projects.robotsim.model;
 
 import java.io.BufferedOutputStream;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -10,10 +11,11 @@ import fr.tp.inf112.projects.canvas.model.Canvas;
 import fr.tp.inf112.projects.canvas.model.CanvasChooser;
 import fr.tp.inf112.projects.canvas.model.impl.AbstractCanvasPersistenceManager;
 
-import java.awt.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
+import java.util.ArrayList;
 
 public class PersistenceServer {
     public static void main(String[] args) {
@@ -41,7 +43,31 @@ class PersistenceRequestProcessor implements Runnable {
     public PersistenceRequestProcessor(Socket socket) {
         this.socket = socket;
     }
+    
+    private List<String> getAllFiles(String extension){
+    	List<String> fileNames = new ArrayList<>(); // List to hold the filenames
 
+        // Get the current directory
+        File currentDir = new File("."); // "." refers to the current directory
+
+        // Define a FilenameFilter to filter files by the specified extension
+        FilenameFilter filter = (dir, name) -> name.toLowerCase().endsWith("." + extension.toLowerCase());
+
+        // List all files in the current directory that match the filter
+        String[] matchingFiles = currentDir.list(filter);
+        // String[] files = currentDir.list();
+
+        if (matchingFiles != null) {
+            // Add matching file names to the list
+            for (String fileName : matchingFiles) {
+                fileNames.add(fileName);
+            }
+        }
+
+        return fileNames; // Return the list of filenames
+    }
+
+    
     @Override
     public void run() {
         try {
@@ -55,15 +81,15 @@ class PersistenceRequestProcessor implements Runnable {
 
             if (recvObject instanceof String){ // Assuming read() is called and send back
                 String canvasId = (String) recvObject;
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(outStream);
+                ObjectOutputStream objOutputStream = new ObjectOutputStream(outStream);
                 System.out.println("A string received, deserializing from designated file...");
                 try {
                         final InputStream fileInputStream = new FileInputStream(canvasId);
                         final InputStream bufInputStream = new BufferedInputStream(fileInputStream);
                         final ObjectInputStream localObjectInputStrteam = new ObjectInputStream(bufInputStream);
                 	Canvas canvas = (Canvas) localObjectInputStrteam.readObject();
-                    objectOutputStream.writeObject(canvas);
-                    objectOutputStream.flush();
+                    objOutputStream.writeObject(canvas);
+                    objOutputStream.flush();
                 }
                 catch (ClassNotFoundException | IOException ex) {
                     throw new IOException(ex);
@@ -79,6 +105,15 @@ class PersistenceRequestProcessor implements Runnable {
                 ) {
                     objOutStream.writeObject(canvas);
                 }
+            }
+            else if (recvObject instanceof Integer) {
+            	System.out.println("An instruction received, returning a list of filenames...");
+            	List<String> fileList = (List<String>)getAllFiles("factory");
+            	try (
+            			ObjectOutputStream objOutputStream = new ObjectOutputStream(outStream);
+                ) {
+            		objOutputStream.writeObject(fileList);
+            	}	
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -50,8 +50,9 @@ public class RemoteClientUtils {
 					objOutStream.writeObject(object);
 					objOutStream.flush();
 				}
-			catch (IOException ex) {
+			catch (IOException e) {
 				System.out.println("An IOException is caught by remoteClientUtil when sending...");
+				e.printStackTrace();
 			}
 		}
 		
@@ -65,11 +66,13 @@ public class RemoteClientUtils {
 				final ObjectInputStream objectInputStrteam = new ObjectInputStream(bufferedInputStream); 
 				return objectInputStrteam.readObject();
 			}
-			catch (IOException ex) {
+			catch (IOException e) {
 					System.out.println("An IOException is caught by remoteClientUtil when recving...");
+					e.printStackTrace();
 				}
-			catch (ClassNotFoundException ex) {
+			catch (ClassNotFoundException e) {
 				System.out.println("An ClassNotFoundException is caught by remoteClientUtil when recving...");
+				e.printStackTrace();
 			}
 		}
 		return null;

@@ -3,6 +3,8 @@ package fr.tp.inf112.projects.robotsim.app;
 import java.awt.Component;
 import java.util.Arrays;
 import java.util.logging.Logger;
+
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import fr.tp.inf112.projects.canvas.model.impl.BasicVertex;
@@ -16,6 +18,7 @@ import fr.tp.inf112.projects.robotsim.model.Door;
 import fr.tp.inf112.projects.robotsim.model.Factory;
 import fr.tp.inf112.projects.robotsim.model.FactoryPersistenceManager;
 import fr.tp.inf112.projects.robotsim.model.Machine;
+import fr.tp.inf112.projects.robotsim.model.RemoteFileCanvasChooser;
 import fr.tp.inf112.projects.robotsim.model.RemotePersistenceManager;
 import fr.tp.inf112.projects.robotsim.model.Robot;
 import fr.tp.inf112.projects.robotsim.model.Room;
@@ -84,7 +87,7 @@ public class SimulatorApplication {
 			  
 			@Override
 	        public void run() {
-				final FileCanvasChooser canvasChooser = new FileCanvasChooser("factory", "Puck Factory");
+				final RemoteFileCanvasChooser canvasChooser = new RemoteFileCanvasChooser("factory", "Puck Factory");
 				final Component factoryViewer = new CanvasViewer(new SimulatorController(factory, new RemotePersistenceManager(canvasChooser)));
 				canvasChooser.setViewer(factoryViewer);
 				//new CanvasViewer(factory);
