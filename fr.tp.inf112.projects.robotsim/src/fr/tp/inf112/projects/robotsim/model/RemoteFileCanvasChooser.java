@@ -41,14 +41,15 @@ public class RemoteFileCanvasChooser extends FileCanvasChooser {
 	    	}
 	    }
 	    else { // let user enter a filename to save to
-	    	fileName = JOptionPane.showInputDialog("Enter Your Filename to Save:\n");
+	    	fileName = JOptionPane.showInputDialog("Enter Your Filename to Save:\n", ".factory");
 	    }
 	    
 	    if (fileName != null && !fileName.trim().isEmpty()) {
 		    File file = new File("./" + fileName);
-		    if (file.exists()) {
+		    if ((open && file.exists()) || !open) {
 		    	return file.getPath();
 		    }
+		    
 	    }
 	    
 	    return null;
