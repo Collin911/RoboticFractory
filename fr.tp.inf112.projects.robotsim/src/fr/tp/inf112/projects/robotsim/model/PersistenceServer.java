@@ -48,7 +48,7 @@ class PersistenceRequestProcessor implements Runnable {
     	List<String> fileNames = new ArrayList<>(); // List to hold the filenames
 
         // Get the current directory
-        File currentDir = new File("."); // "." refers to the current directory
+        File currentDir = new File("."); 
 
         // Define a FilenameFilter to filter files by the specified extension
         FilenameFilter filter = (dir, name) -> name.toLowerCase().endsWith("." + extension.toLowerCase());
