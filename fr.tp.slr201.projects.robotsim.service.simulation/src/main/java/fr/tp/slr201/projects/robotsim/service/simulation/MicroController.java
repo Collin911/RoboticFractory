@@ -157,12 +157,6 @@ class simulationRequestProcessor implements Runnable {
 	    @Override
 	    public void run() {
 	    	factory.startSimulation();
-	    	return;
-	    	
-	    }
-	    
-	    public void stop() {
-	    	factory.stopSimulation();
-	    	return;
+	    	return;	    	
 	    }
 	}
