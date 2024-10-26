@@ -14,7 +14,9 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.springframework.boot.SpringApplication;
@@ -42,8 +44,9 @@ public class MicroController {
 	// It runs on port 65501 by default
 	
 	private static final Logger LOGGER = Logger.getLogger(SimulatorApplication.class.getName());
-	private List<Factory> factoryList;
+	// private List<Factory> factoryList;
 	private List<Thread> simuProcessorList;
+	private Map<Factory, Thread> factoryThreadMap;
 	final private RemoteFileCanvasChooser canvasChooser;
 	final private RemotePersistenceManager remotePersistMgr;
 
@@ -52,8 +55,9 @@ public class MicroController {
 	}
 	
 	public MicroController(){
-		factoryList = new ArrayList<Factory>();
+		// factoryList = new ArrayList<Factory>();
 		simuProcessorList = new ArrayList<Thread>();
+		factoryThreadMap = new HashMap<>();
 		canvasChooser = new RemoteFileCanvasChooser("factory", "Puck Factory");
 		remotePersistMgr = new RemotePersistenceManager(canvasChooser);
 	}
@@ -75,11 +79,12 @@ public class MicroController {
 			LOGGER.info(e.getMessage());
 		}
 		if (factory != null) {
-			factoryList.add(factory);
+			// factoryList.add(factory);
 			Runnable reqProcessor = new simulationRequestProcessor(factory);
             Thread simulationThread = new Thread(reqProcessor);
             simulationThread.start();
             simuProcessorList.add(simulationThread);
+            factoryThreadMap.put(factory, simulationThread);
 			// factory.startSimulation();
 			returnVal = true;
 			LOGGER.fine(String.format("Starting factory %s successfully!", factoryID));
@@ -91,9 +96,17 @@ public class MicroController {
 	@GetMapping("/simulation/{factoryID}/stop")
     public boolean stopSimulation(@PathVariable String factoryID) {
 		Factory factory = getFactoryById(factoryID);
+		Thread thread = getThreadById(factoryID);
 		boolean returnVal = false;
 		if (factory != null) {
 			factory.stopSimulation();
+			try {
+				thread.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				LOGGER.info(String.format("The following IOException caught during stopping factory %s.", factoryID));
+				LOGGER.info(e.getMessage());
+			}
 			returnVal = true;
 			LOGGER.fine(String.format("Starting factory %s successfully!", factoryID));
 	    }
@@ -106,11 +119,19 @@ public class MicroController {
 		return getFactoryById(factoryID);
 	}
 	
+	@GetMapping("/simulation/{factoryID}/status")
+    public boolean statusOfSimulation(@PathVariable String factoryID) {
+		// true for running, false for stopped
+		Factory factory = getFactoryById(factoryID);
+		boolean returnVal = factory.isSimulationStarted();
+		return returnVal;
+	}
+		
 	private Factory getFactoryById(String factoryID) {
 		Factory returnVal = null;
-		for (Factory fac : factoryList) {
-			File file = new File(fac.getId());
-	        String facID = file.getName();
+		for (Factory fac : factoryThreadMap.keySet()) {
+			File file = new File(fac.getId()); // getId method returns absolute file path
+	        String facID = file.getName(); // this is a quick way to get only filename
 			if(facID.equals(factoryID)) {
 				returnVal = fac;
 			}
@@ -119,14 +140,14 @@ public class MicroController {
 	}
 	
 	private Thread getThreadById(String factoryID) {
-		for (Thread thread : simuProcessorList) {
-		}
+		Thread returnVal = factoryThreadMap.get(getFactoryById(factoryID));	
+		return returnVal;
 	}
       
 }
 
 class simulationRequestProcessor implements Runnable {
-	    protected Factory factory;
+	    private Factory factory;
 
 	    public simulationRequestProcessor(Factory factory) {
 	        this.factory = factory;
