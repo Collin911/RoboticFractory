@@ -39,7 +39,7 @@ import fr.tp.inf112.projects.robotsim.model.RemotePersistenceManager;
 
 @SpringBootApplication
 @RestController
-public class MicroController {
+public class MicroServer {
 	// This server is for remote simulation
 	// It runs on port 65501 by default
 	
@@ -51,10 +51,10 @@ public class MicroController {
 	final private RemotePersistenceManager remotePersistMgr;
 
 	public static void main(String[] args) {
-		SpringApplication.run(MicroController.class, args);
+		SpringApplication.run(MicroServer.class, args);
 	}
 	
-	public MicroController(){
+	public MicroServer(){
 		// factoryList = new ArrayList<Factory>();
 		simuProcessorList = new ArrayList<Thread>();
 		factoryThreadMap = new HashMap<>();
