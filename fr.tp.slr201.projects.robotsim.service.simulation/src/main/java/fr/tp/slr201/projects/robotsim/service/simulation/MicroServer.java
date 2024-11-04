@@ -70,14 +70,8 @@ public class MicroServer {
 	
 	@GetMapping("/simulation/{factoryID}/start")
     public boolean startSimulation(@PathVariable String factoryID) {
-		Factory factory = null;
+		Factory factory = getFactoryById(factoryID);
 		boolean returnVal = false;
-		try {
-			factory = (Factory) remotePersistMgr.read(factoryID);	
-		} catch (IOException e) {
-			LOGGER.info(String.format("The following IOException caught during getting factory %s.", factoryID));
-			LOGGER.info(e.getMessage());
-		}
 		if (factory != null) {
 			// factoryList.add(factory);
 			Runnable reqProcessor = new simulationRequestProcessor(factory);
@@ -88,11 +82,10 @@ public class MicroServer {
 			// factory.startSimulation();
 			returnVal = true;
 			LOGGER.fine(String.format("Starting factory %s successfully!", factoryID));
-	    }
-		
+	    }		
 		return returnVal;
 	}
-	
+    
 	@GetMapping("/simulation/{factoryID}/stop")
     public boolean stopSimulation(@PathVariable String factoryID) {
 		Factory factory = getFactoryById(factoryID);
@@ -116,7 +109,7 @@ public class MicroServer {
 	
 	@GetMapping("/simulation/{factoryID}/get")
     public Factory getFactory(@PathVariable String factoryID) {
-		return getFactoryById(factoryID);
+		return (Factory)getFactoryById(factoryID);
 	}
 	
 	@GetMapping("/simulation/{factoryID}/status")
@@ -128,14 +121,30 @@ public class MicroServer {
 	}
 		
 	private Factory getFactoryById(String factoryID) {
+		// This method serves two functions
+		// 1. If a factory is running and previously added to its map, the method will return it
+		// 2. If the factory has not yet been referenced before, the method contact persistence server to retrieve it
 		Factory returnVal = null;
+		// Searching the saved factories
 		for (Factory fac : factoryThreadMap.keySet()) {
 			File file = new File(fac.getId()); // getId method returns absolute file path
 	        String facID = file.getName(); // this is a quick way to get only filename
 			if(facID.equals(factoryID)) {
 				returnVal = fac;
 			}
-		}	
+		}
+		// If nothing found, try to retrieve from the remote server
+		if(returnVal == null) {
+			try {
+				returnVal = (Factory) remotePersistMgr.read(factoryID);	
+			} catch (IOException e) {
+				LOGGER.info(String.format("The following IOException caught during getting factory %s.", factoryID));
+				LOGGER.info(e.getMessage());
+			}
+		}
+		
+		// If no luck for both times, returnVal will still be null
+		
 		return returnVal;
 	}
 	
