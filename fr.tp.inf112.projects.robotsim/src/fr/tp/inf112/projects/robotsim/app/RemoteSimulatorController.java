@@ -87,7 +87,7 @@ public class RemoteSimulatorController extends SimulatorController{
 				return false;			
 		}
 		try {			
-			final URI uri = new URI("http", null, "localhost", 65501, "/simulation" + factoryID + "/" + operation, null, null);
+			final URI uri = new URI("http", null, "localhost", 65501, "/simulation/" + factoryID + "/" + operation, null, null);
 			HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
 			try {
 				HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -119,10 +119,11 @@ public class RemoteSimulatorController extends SimulatorController{
 	private Factory getFactory() {
 		Factory fac = null;
 		try {			
-			final URI uri = new URI("http", null, "localhost", 65501, "/simulation" + factoryID + "/get", null, null);
+			final URI uri = new URI("http", null, "localhost", 65501, "/simulation/" + factoryID + "/get", null, null);
 			HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
 			try {
 				HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+				// System.out.println(response.body()); // For debug only
 				ObjectMapper objectMapper = new ObjectMapper();
 				fac = objectMapper.readValue(response.body(), Factory.class);
 			} catch (IOException e) {
@@ -141,20 +142,27 @@ public class RemoteSimulatorController extends SimulatorController{
 
 	@Override
 	public boolean addObserver(Observer observer) {
-		// TODO Auto-generated method stub
+		Factory fac = getFactory();
+		if (fac != null) {
+			return fac.addObserver(observer);
+		}
+		
 		return false;
 	}
 
 	@Override
 	public boolean removeObserver(Observer observer) {
-		// TODO Auto-generated method stub
+		Factory fac = getFactory();
+		if (fac != null) {
+			return fac.removeObserver(observer);
+		}
+		
 		return false;
 	}
 
 	@Override
 	public Canvas getCanvas() {
-		// TODO Auto-generated method stub
-		return null;
+		return (Canvas)this.getFactory();
 	}
 
 	/**
@@ -162,7 +170,7 @@ public class RemoteSimulatorController extends SimulatorController{
 	*/
 	@Override
 	public void setCanvas(final Canvas canvasModel) {
-		 final List<Observer> observers = ((Factory) getCanvas()).getObservers();
+		 final List<Observer> observers = getFactory().getObservers();
 		 super.setCanvas(canvasModel);
 		 for (final Observer observer : observers) {
 		 ((Factory) getCanvas()).addObserver(observer);
