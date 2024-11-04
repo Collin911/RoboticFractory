@@ -5,6 +5,10 @@ import fr.tp.inf112.projects.robotsim.model.shapes.PositionedShape;
 public class Conveyor extends Component {
 	
 	private static final long serialVersionUID = 3686048824190456547L;
+	
+	public Conveyor() { //no-argument constructor as required by Jackson
+		this(null, null, "DEFAULT");
+	}
 
 	public Conveyor(final Factory factory,
 					final PositionedShape shape,

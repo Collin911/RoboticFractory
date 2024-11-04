@@ -8,6 +8,10 @@ public class ChargingStation extends Component {
 	private static final long serialVersionUID = -154228412357092561L;
 	
 	private boolean charging;
+	
+	public ChargingStation() { //no-argument constructor as required by Jackson
+		this((Factory)null, null, "DEFAULT");
+	}
 
 	public ChargingStation(final Room room,
 						   final RectangularShape shape,

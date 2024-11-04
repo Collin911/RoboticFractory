@@ -6,6 +6,10 @@ import fr.tp.inf112.projects.robotsim.model.shapes.RectangularShape;
 public class Machine extends Component {
 
 	private static final long serialVersionUID = -1568908860712776436L;
+	
+	public Machine() { //no-argument constructor as required by Jackson
+		super();
+	}
 
 	public Machine(final Area area,
 				   final RectangularShape shape,

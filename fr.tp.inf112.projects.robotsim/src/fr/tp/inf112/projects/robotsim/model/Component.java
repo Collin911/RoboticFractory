@@ -18,6 +18,10 @@ public abstract class Component implements Figure, Serializable, Runnable {
 	private final PositionedShape positionedShape;
 	
 	private final String name;
+	
+	public Component() { //no-argument constructor as required by Jackson
+		this(null, null, "DEFAULT");
+	}
 
 	protected Component(final Factory factory,
 						final PositionedShape shape,

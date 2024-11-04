@@ -37,6 +37,10 @@ public class Robot extends Component {
 	private Position nextPosition;
 	
 	private FactoryPathFinder pathFinder;
+	
+	public Robot() { //no-argument constructor as required by Jackson
+		this(null, null, null, null, "DEFAULT");
+	}
 
 	public Robot(final Factory factory,
 				 final FactoryPathFinder pathFinder,

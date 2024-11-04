@@ -26,6 +26,10 @@ public class Factory extends Component implements Canvas, Observable {
 
 	private transient boolean simulationStarted;
 	
+	public Factory() { //no-argument constructor as required by Jackson
+		this(0, 0, null);
+	}
+	
 	public Factory(final int width,
 				   final int height,
 				   final String name ) {
@@ -80,7 +84,7 @@ public class Factory extends Component implements Canvas, Observable {
 		return false;
 	}
 
-	protected List<Component> getComponents() {
+	public List<Component> getComponents() {
 		return components;
 	}
 
@@ -193,4 +197,16 @@ public class Factory extends Component implements Canvas, Observable {
 		
 		return false;
 	}
+	
+	// A series of setters and getters to comply with REST specifications
+	
+
+	public boolean getsimulationStarted() {
+		return this.simulationStarted;
+	}
+	
+	public void setSimulationStarted(boolean flag) {
+		this.simulationStarted = flag;
+	}
+	
 }

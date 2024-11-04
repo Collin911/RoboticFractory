@@ -75,6 +75,12 @@ public class Door extends Component {
 	
 	private static final Style OPEN_STYLE = new ComponentStyle(RGBColor.WHITE, null, 0, null);
 	
+	public Door() { //no-argument constructor as required by Jackson
+		super();
+		this.room = null;
+		this.open = false;
+	}
+	
 	public Door(final Room room,
 				final Room.WALL wall,
 				final int offset,

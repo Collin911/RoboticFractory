@@ -9,6 +9,10 @@ public class Position implements Serializable {
 	private int xCoordinate;
 
 	private int yCoordinate;
+	
+	public Position() { //no-argument constructor as required by Jackson
+		this(-1, -1);
+	}
 
 	public Position(final int xCoordinate, 
 					final int yCoordinate) {

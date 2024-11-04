@@ -25,6 +25,10 @@ public class Room extends Component {
 	private final List<Area> areas;
 
 	private final List<Door> doors;
+	
+	public Room() { //no-argument constructor as required by Jackson
+		this(null, null, "DEFAULT");
+	}
 
 	public Room(final Factory factory,
 				final RectangularShape shape,

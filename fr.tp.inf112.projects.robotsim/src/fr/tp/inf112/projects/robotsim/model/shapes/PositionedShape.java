@@ -2,9 +2,22 @@ package fr.tp.inf112.projects.robotsim.model.shapes;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+
 import fr.tp.inf112.projects.canvas.model.Shape;
 import fr.tp.inf112.projects.robotsim.model.Position;
 
+@JsonTypeInfo(
+	    use = JsonTypeInfo.Id.NAME, 
+	    include = JsonTypeInfo.As.PROPERTY, 
+	    property = "type"
+	)
+	@JsonSubTypes({
+	    @JsonSubTypes.Type(value = RectangularShape.class, name = "RectangularShape"),
+	    @JsonSubTypes.Type(value = CircularShape.class, name = "CircularShape"),
+	    @JsonSubTypes.Type(value = BasicPolygonShape.class, name = "BasicPolygonShape")
+	})
 public abstract class PositionedShape implements Shape, Serializable {
 
 	private static final long serialVersionUID = 2217860927757709195L;
@@ -29,6 +42,7 @@ public abstract class PositionedShape implements Shape, Serializable {
 	}
 
 	private final Position position;
+	
 	
 	protected PositionedShape(final int xCoordinate,
 							  final int yCoordinate) {

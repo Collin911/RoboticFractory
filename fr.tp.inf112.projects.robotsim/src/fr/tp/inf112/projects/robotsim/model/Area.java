@@ -12,6 +12,10 @@ public class Area extends Component {
 	
 	private Machine machine;
 	
+	public Area() { //no-argument constructor as required by Jackson
+		super();
+	}
+	
 	public Area(final Room room,
 				final RectangularShape shape,
 				final String name) {
