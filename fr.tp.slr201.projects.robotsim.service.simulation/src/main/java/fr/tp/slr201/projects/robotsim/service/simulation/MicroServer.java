@@ -77,6 +77,7 @@ public class MicroServer {
 			Runnable reqProcessor = new simulationRequestProcessor(factory);
             Thread simulationThread = new Thread(reqProcessor);
             simulationThread.start();
+            
             simuProcessorList.add(simulationThread);
             factoryThreadMap.put(factory, simulationThread);
 			// factory.startSimulation();

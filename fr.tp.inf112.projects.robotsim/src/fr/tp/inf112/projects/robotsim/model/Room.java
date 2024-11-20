@@ -3,6 +3,8 @@ package fr.tp.inf112.projects.robotsim.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import fr.tp.inf112.projects.robotsim.model.shapes.PositionedShape;
 import fr.tp.inf112.projects.robotsim.model.shapes.RectangularShape;
 
@@ -22,6 +24,7 @@ public class Room extends Component {
 	
 	private final PositionedShape bottomWall;
 	
+	@JsonManagedReference
 	private final List<Area> areas;
 
 	private final List<Door> doors;
