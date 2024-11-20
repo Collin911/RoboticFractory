@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import fr.tp.inf112.projects.canvas.controller.Observable;
 import fr.tp.inf112.projects.canvas.controller.Observer;
 import fr.tp.inf112.projects.canvas.model.Canvas;
@@ -19,7 +21,7 @@ public class Factory extends Component implements Canvas, Observable {
 	
 	private static final ComponentStyle DEFAULT = new ComponentStyle(5.0f);
 
-
+	@JsonManagedReference
     private final List<Component> components;
 
 	private transient List<Observer> observers;
