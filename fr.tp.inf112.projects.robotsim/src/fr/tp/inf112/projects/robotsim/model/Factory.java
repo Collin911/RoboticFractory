@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import fr.tp.inf112.projects.canvas.controller.Observable;
 import fr.tp.inf112.projects.canvas.controller.Observer;
@@ -15,17 +18,22 @@ import fr.tp.inf112.projects.robotsim.model.motion.Motion;
 import fr.tp.inf112.projects.robotsim.model.shapes.PositionedShape;
 import fr.tp.inf112.projects.robotsim.model.shapes.RectangularShape;
 
+@JsonIdentityInfo(
+		generator = ObjectIdGenerators.PropertyGenerator.class,
+		property = "id")
 public class Factory extends Component implements Canvas, Observable {
 
 	private static final long serialVersionUID = 5156526483612458192L;
 	
 	private static final ComponentStyle DEFAULT = new ComponentStyle(5.0f);
 
-	@JsonManagedReference
+	//@JsonManagedReference
     private final List<Component> components;
 
+	@JsonIgnore
 	private transient List<Observer> observers;
 
+	@JsonIgnore
 	private transient boolean simulationStarted;
 	
 	public Factory() { //no-argument constructor as required by Jackson
@@ -42,6 +50,7 @@ public class Factory extends Component implements Canvas, Observable {
 		simulationStarted = false;
 	}
 	
+	@JsonIgnore
 	public List<Observer> getObservers() {
 		if (observers == null) {
 			observers = new ArrayList<>();
@@ -86,11 +95,13 @@ public class Factory extends Component implements Canvas, Observable {
 		return false;
 	}
 
+	//@JsonIgnore
 	public List<Component> getComponents() {
 		return components;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@JsonIgnore
 	@Override
 	public Collection<Figure> getFigures() {
 		return (Collection) components;
@@ -174,6 +185,11 @@ public class Factory extends Component implements Canvas, Observable {
 		return positionAvailable;
 	}
 	
+	public Style getComponentStyle() {
+		return getStyle();
+	}
+	
+	@JsonIgnore
 	@Override
 	public Style getStyle() {
 		return DEFAULT;

@@ -24,7 +24,6 @@ public class Room extends Component {
 	
 	private final PositionedShape bottomWall;
 	
-	@JsonManagedReference
 	private final List<Area> areas;
 
 	private final List<Door> doors;

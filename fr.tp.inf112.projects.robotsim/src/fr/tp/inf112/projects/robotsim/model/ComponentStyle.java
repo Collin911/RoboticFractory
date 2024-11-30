@@ -2,6 +2,8 @@ package fr.tp.inf112.projects.robotsim.model;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import fr.tp.inf112.projects.canvas.model.Color;
 import fr.tp.inf112.projects.canvas.model.Style;
 import fr.tp.inf112.projects.canvas.model.Stroke;
@@ -57,19 +59,28 @@ public class ComponentStyle implements Style, Stroke, Serializable {
 	public Color getBackgroundColor() {
 		return backgroundColor;
 	}
-
+	
+	public Color getLineColor() {
+		return this.getColor();
+	}
+	
+	@JsonIgnore
 	@Override
 	public Color getColor() {
 		return lineColor;
 	}
 
-
+	@JsonIgnore
 	@Override
 	public Stroke getStroke() {
 		return this;
 	}
+	
+	public float getLineThickness() {
+		return this.getThickness();
+	}
 
-
+	@JsonIgnore
 	@Override
 	public float getThickness() {
 		return lineThickness;

@@ -43,6 +43,10 @@ public abstract class PositionedShape implements Shape, Serializable {
 
 	private final Position position;
 	
+	//empty constructor
+	protected PositionedShape() {
+		this(-1, -1);
+	}
 	
 	protected PositionedShape(final int xCoordinate,
 							  final int yCoordinate) {

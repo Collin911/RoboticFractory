@@ -3,14 +3,18 @@ package fr.tp.inf112.projects.robotsim.model;
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import fr.tp.inf112.projects.canvas.model.Figure;
 import fr.tp.inf112.projects.canvas.model.Style;
 import fr.tp.inf112.projects.robotsim.model.shapes.PositionedShape;
 import fr.tp.inf112.projects.canvas.model.Shape;
 
+@JsonIdentityInfo(
+		generator = ObjectIdGenerators.PropertyGenerator.class,
+		property = "id")
 public abstract class Component implements Figure, Serializable, Runnable {
 	
 	private static final long serialVersionUID = -5960950869184030220L;
@@ -64,19 +68,24 @@ public abstract class Component implements Figure, Serializable, Runnable {
 		return positionedShape;
 	}
 	
+	@JsonIgnore
 	public Position getPosition() {
-		return getPositionedShape().getPosition();
+		final PositionedShape shape = getPositionedShape();
+		return shape == null ? null: shape.getPosition();
 	}
 
 	protected Factory getFactory() {
 		return factory;
 	}
 
+	@JsonIgnore
 	@Override
 	public int getxCoordinate() {
-		return getPositionedShape().getxCoordinate();
+		final PositionedShape shape = getPositionedShape();
+		return shape == null ? -1 : shape.getxCoordinate();
 	}
-
+	
+	@JsonIgnore
 	protected boolean setxCoordinate(int xCoordinate) {
 		if ( getPositionedShape().setxCoordinate( xCoordinate ) ) {
 			notifyObservers();
@@ -87,11 +96,14 @@ public abstract class Component implements Figure, Serializable, Runnable {
 		return false;
 	}
 
+	@JsonIgnore
 	@Override
 	public int getyCoordinate() {
-		return getPositionedShape().getyCoordinate();
+		final PositionedShape shape = getPositionedShape();
+		return shape == null ? -1 : shape.getyCoordinate();
 	}
 
+	@JsonIgnore
 	protected boolean setyCoordinate(final int yCoordinate) {
 		if (getPositionedShape().setyCoordinate(yCoordinate) ) {
 			notifyObservers();
@@ -113,21 +125,26 @@ public abstract class Component implements Figure, Serializable, Runnable {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + " [name=" + name + " xCoordinate=" + getxCoordinate() + ", yCoordinate=" + getyCoordinate()
-				+ ", shape=" + getPositionedShape();
+				+ ", positionedShape=" + getPositionedShape();
 	}
-
+	
+	@JsonIgnore
 	public int getWidth() {
-		return getPositionedShape().getWidth();
+		final PositionedShape shape = getPositionedShape();
+		return shape == null ? -1 : shape.getWidth();
 	}
 
+	@JsonIgnore
 	public int getHeight() {
-		return getPositionedShape().getHeight();
+		final PositionedShape shape = getPositionedShape();
+		return shape == null ? -1 : shape.getHeight();
 	}
 	
 	public boolean behave() {
 		return false;
 	}
 	
+	@JsonIgnore
 	public boolean isMobile() {
 		return false;
 	}
@@ -150,11 +167,13 @@ public abstract class Component implements Figure, Serializable, Runnable {
 		return ComponentStyle.DEFAULT;
 	}
 	
+	@JsonIgnore
 	@Override
 	public Shape getShape() {
 		return getPositionedShape();
 	}
 	
+	@JsonIgnore
 	public boolean isSimulationStarted() {
 		return getFactory().isSimulationStarted();
 	}
