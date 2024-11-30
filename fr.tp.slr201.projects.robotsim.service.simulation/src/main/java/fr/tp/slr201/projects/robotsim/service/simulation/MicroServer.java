@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -29,13 +30,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
+
 import fr.tp.inf112.projects.canvas.model.Canvas;
+import fr.tp.inf112.projects.canvas.model.impl.BasicVertex;
 import fr.tp.inf112.projects.canvas.view.CanvasViewer;
 import fr.tp.inf112.projects.robotsim.app.SimulatorApplication;
 import fr.tp.inf112.projects.robotsim.app.SimulatorController;
 import fr.tp.inf112.projects.robotsim.model.Factory;
 import fr.tp.inf112.projects.robotsim.model.RemoteFileCanvasChooser;
 import fr.tp.inf112.projects.robotsim.model.RemotePersistenceManager;
+import fr.tp.inf112.projects.robotsim.model.shapes.PositionedShape;
 
 @SpringBootApplication
 @RestController
@@ -74,6 +82,8 @@ public class MicroServer {
 		boolean returnVal = false;
 		if (factory != null) {
 			// factoryList.add(factory);
+			// Dispatch a dedicated thread for running simulation
+			// So that the micro-service is non-blocking (e.g., type this URL in the browser, it will return immediately)
 			Runnable reqProcessor = new simulationRequestProcessor(factory);
             Thread simulationThread = new Thread(reqProcessor);
             simulationThread.start();
@@ -111,6 +121,34 @@ public class MicroServer {
 	@GetMapping("/simulation/{factoryID}/get")
     public Factory getFactory(@PathVariable String factoryID) {
 		return (Factory)getFactoryById(factoryID);
+	}
+	
+	@GetMapping("/simulation/{factoryID}/getJson")
+    public String getFactoryAsString(@PathVariable String factoryID) {
+		Factory fac = getFactoryById(factoryID);
+		String factoryAsString = null;
+		ObjectMapper objectMapper = new ObjectMapper();
+		// Adding polymorphic support
+		PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
+				 .allowIfSubType(PositionedShape.class.getPackageName())
+				 .allowIfSubType(Component.class.getPackageName())
+				 .allowIfSubType(BasicVertex.class.getPackageName())
+				 .allowIfSubType(ArrayList.class.getName())
+				 .allowIfSubType(LinkedHashSet.class.getName())
+				 .allowIfSubType("fr.tp.inf112.projects.canvas.model.impl")
+				 .allowIfSubType("fr.tp.inf112.projects.robotsim.model")
+				 .allowIfBaseType("fr.tp.inf112.projects.robotsim.model")
+			.build();
+		objectMapper.activateDefaultTyping(typeValidator, 
+				 ObjectMapper.DefaultTyping.NON_FINAL);
+		try {
+			factoryAsString = objectMapper.writeValueAsString(fac);
+			
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			LOGGER.severe(e.getMessage() + e.getStackTrace());
+		}
+		return factoryAsString;
 	}
 	
 	@GetMapping("/simulation/{factoryID}/status")
