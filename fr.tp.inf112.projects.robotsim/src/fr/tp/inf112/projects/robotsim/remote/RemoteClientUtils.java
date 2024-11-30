@@ -9,14 +9,17 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.*;
+import java.util.logging.Logger;
 
 import fr.tp.inf112.projects.canvas.model.Canvas;
+import fr.tp.inf112.projects.robotsim.app.SimulatorApplication;
 
 public class RemoteClientUtils {
 	private String host;
 	private int port;
 	private int timeout;
 	private Socket socket;
+	private static final Logger LOGGER = Logger.getLogger(RemoteClientUtils.class.getName());
 	
 	public RemoteClientUtils(String host, int port, int timeout) {
 		this.host = host;
@@ -33,10 +36,10 @@ public class RemoteClientUtils {
 			socket.connect(sockAddr, timeout);
 			return socket;
 		} catch (UnknownHostException e) {
-			System.out.println("Unknown host");
+			LOGGER.severe("Unknown host");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.severe(e.getMessage());
 		}
 		return null;
 	}
@@ -51,8 +54,8 @@ public class RemoteClientUtils {
 					objOutStream.flush();
 				}
 			catch (IOException e) {
-				System.out.println("An IOException is caught by remoteClientUtil when sending...");
-				e.printStackTrace();
+				LOGGER.severe("An IOException is caught by remoteClientUtil when sending...");
+				LOGGER.severe(e.getMessage());
 			}
 		}
 		
@@ -67,12 +70,12 @@ public class RemoteClientUtils {
 				return objectInputStrteam.readObject();
 			}
 			catch (IOException e) {
-					System.out.println("An IOException is caught by remoteClientUtil when recving...");
-					e.printStackTrace();
+					LOGGER.severe("An IOException is caught by remoteClientUtil when recving...");
+					LOGGER.severe(e.getMessage());
 				}
 			catch (ClassNotFoundException e) {
-				System.out.println("An ClassNotFoundException is caught by remoteClientUtil when recving...");
-				e.printStackTrace();
+				LOGGER.severe("An ClassNotFoundException is caught by remoteClientUtil when recving...");
+				LOGGER.severe(e.getMessage());
 			}
 		}
 		return null;
