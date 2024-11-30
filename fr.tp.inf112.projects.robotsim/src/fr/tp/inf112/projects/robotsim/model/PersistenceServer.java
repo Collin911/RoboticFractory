@@ -15,14 +15,17 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.ArrayList;
 
 public class PersistenceServer {
+	private static final Logger LOGGER = Logger.getLogger(PersistenceServer.class.getName());
+	
     public static void main(String[] args) {
         int port = 65500; // Server will listen on this port
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("Server started on port " + port);
+        	LOGGER.config("Server started on port " + port);
 
             while (true) {
                 // Accept incoming client connections
@@ -39,6 +42,7 @@ public class PersistenceServer {
 
 class PersistenceRequestProcessor implements Runnable {
     private Socket socket;
+    private static final Logger LOGGER = Logger.getLogger(PersistenceRequestProcessor.class.getName());
 
     public PersistenceRequestProcessor(Socket socket) {
         this.socket = socket;
@@ -82,7 +86,7 @@ class PersistenceRequestProcessor implements Runnable {
             if (recvObject instanceof String){ // Assuming read() is called and send back
                 String canvasId = (String) recvObject;
                 ObjectOutputStream objOutputStream = new ObjectOutputStream(outStream);
-                System.out.println("A string received, deserializing from designated file...");
+                LOGGER.info("A string received, deserializing from designated file...");
                 try {
                         final InputStream fileInputStream = new FileInputStream(canvasId);
                         final InputStream bufInputStream = new BufferedInputStream(fileInputStream);
@@ -97,7 +101,7 @@ class PersistenceRequestProcessor implements Runnable {
             }
             else if (recvObject instanceof Canvas) {
                 Canvas canvas = (Canvas) recvObject;
-                System.out.println("A canvas received, serializing to a file...");
+                LOGGER.info("A canvas received, serializing to a file...");
                 try (
                         final OutputStream fileOutStream = new FileOutputStream(canvas.getId());
                         final OutputStream bufOutStream = new BufferedOutputStream(fileOutStream);
@@ -107,7 +111,7 @@ class PersistenceRequestProcessor implements Runnable {
                 }
             }
             else if (recvObject instanceof Integer) {
-            	System.out.println("An instruction received, returning a list of filenames...");
+            	LOGGER.info("An instruction received, returning a list of filenames...");
             	List<String> fileList = (List<String>)getAllFiles("factory");
             	try (
             			ObjectOutputStream objOutputStream = new ObjectOutputStream(outStream);
@@ -116,14 +120,14 @@ class PersistenceRequestProcessor implements Runnable {
             	}	
             }
         } catch (IOException e) {
-            e.printStackTrace();
+           LOGGER.severe(e.getMessage() + e.getStackTrace());
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         } finally {
             try {
                 socket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+            	LOGGER.severe(e.getMessage() + e.getStackTrace());
             }
         }
     }
