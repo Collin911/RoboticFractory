@@ -1,6 +1,7 @@
 package fr.tp.inf112.projects.robotsim.app;
 
 import java.awt.Component;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -88,8 +89,19 @@ public class SimulatorApplication {
 			@Override
 	        public void run() {
 				final RemoteFileCanvasChooser canvasChooser = new RemoteFileCanvasChooser("factory", "Puck Factory");
-				// SimulatorController controller = new SimulatorController(factory, new RemotePersistenceManager(canvasChooser));
-				RemoteSimulatorController controller = new RemoteSimulatorController("1.factory", new RemotePersistenceManager(canvasChooser));
+				final RemotePersistenceManager persistManager = new RemotePersistenceManager(canvasChooser);
+				
+				// First save the newly generated factory to persistence server
+				String facID = Long.toString(System.currentTimeMillis());
+				factory.setId(facID);
+				try {
+					persistManager.persist(factory);
+				} catch (IOException e) {
+					LOGGER.severe("Could not save the new factory due to the following exception.");
+					LOGGER.severe(e.getMessage());
+				}
+				//SimulatorController controller = new SimulatorController(factory, persistManager);
+				RemoteSimulatorController controller = new RemoteSimulatorController(facID, persistManager);
 				final Component factoryViewer = new CanvasViewer(controller);
 				canvasChooser.setViewer(factoryViewer);
 				//new CanvasViewer(factory);

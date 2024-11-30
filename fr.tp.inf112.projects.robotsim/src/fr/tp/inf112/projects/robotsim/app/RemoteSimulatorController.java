@@ -28,12 +28,12 @@ import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 public class RemoteSimulatorController extends SimulatorController{
 	
 	private HttpClient httpClient;	
-	private final CanvasPersistenceManager persistenceManager;
 	private String factoryID;
 	private static final int START = 1;
 	private static final int STOP = 2;
 	private static final int CHECK = 3;
 	private static final Logger LOGGER = Logger.getLogger(RemoteSimulatorController.class.getName());
+	private Thread canvasDeamon;
 	
 	public RemoteSimulatorController(final CanvasPersistenceManager persistenceManager) {
 		this(null, persistenceManager);
@@ -41,9 +41,20 @@ public class RemoteSimulatorController extends SimulatorController{
 	
 	public RemoteSimulatorController(String factoryID, final CanvasPersistenceManager persistenceManager) {
 		super(persistenceManager);
-		this.persistenceManager = persistenceManager;
 		this.httpClient = HttpClient.newHttpClient();
 		this.factoryID = factoryID;
+		this.factoryModel = getFactory();
+		this.canvasDeamon= new Thread(() -> {
+            while(true) {
+            	try {
+					updateViewer();
+					Thread.sleep(100);
+				} catch (InterruptedException | URISyntaxException | IOException e) {
+					LOGGER.severe(e.getMessage() + e.getStackTrace());
+				}
+            	
+            }
+        });
 	}
 
 	/**
@@ -52,6 +63,7 @@ public class RemoteSimulatorController extends SimulatorController{
 	@Override
 	public void startAnimation() {
 		this.animationControl(START);
+		canvasDeamon.start();
 	}
 
 	/**
@@ -60,6 +72,7 @@ public class RemoteSimulatorController extends SimulatorController{
 	@Override
 	public void stopAnimation() {
 		this.animationControl(STOP);
+		stopCanvasDeamon();
 	}
 
 	/**
@@ -117,14 +130,6 @@ public class RemoteSimulatorController extends SimulatorController{
 		
 		return returnVal;
 	}
-	
-	private void updateViewer() throws InterruptedException, URISyntaxException, IOException {
-		 while (((Factory)getCanvas()).isSimulationStarted()) {
-		 final Factory remoteFactoryModel = getFactory();
-		 setCanvas(remoteFactoryModel);
-		 Thread.sleep(100);
-		 }
-	}
 
 	private Factory getFactory() {
 		Factory fac = null;
@@ -161,32 +166,32 @@ public class RemoteSimulatorController extends SimulatorController{
 			// TODO Auto-generated catch block
 			LOGGER.severe(e.getMessage() + e.getStackTrace());
 		}
+		fac.setSimulationStatus(isAnimationRunning());
 		return fac;
 	}
-
-	@Override
-	public boolean addObserver(Observer observer) {
-		Factory fac = getFactory();
-		if (fac != null) {
-			return fac.addObserver(observer);
+	
+	private void updateLocalFactoryWith(Factory fac) {
+		// Use this method to update the local model so that you won't lose your observer
+		for(Observer ob : this.factoryModel.getObservers()) {
+			fac.addObserver(ob);
 		}
-		
-		return false;
+		this.factoryModel = fac;
+		return;
 	}
-
-	@Override
-	public boolean removeObserver(Observer observer) {
-		Factory fac = getFactory();
-		if (fac != null) {
-			return fac.removeObserver(observer);
+	
+	private void stopCanvasDeamon() {
+		if(canvasDeamon!=null & canvasDeamon.isAlive()) {
+			canvasDeamon.interrupt();
 		}
-		
-		return false;
 	}
-
-	@Override
-	public Canvas getCanvas() {
-		return (Canvas)this.getFactory();
+	
+	private void updateViewer() throws InterruptedException, URISyntaxException, IOException {
+		Factory fac = getFactory();
+		 while (fac.isSimulationStarted()) {
+			 updateLocalFactoryWith(fac);
+			 final Factory remoteFactoryModel = getFactory();
+			 setCanvas(remoteFactoryModel);
+		 }
 	}
 
 	/**
@@ -194,12 +199,13 @@ public class RemoteSimulatorController extends SimulatorController{
 	*/
 	@Override
 	public void setCanvas(final Canvas canvasModel) {
-		 final List<Observer> observers = getFactory().getObservers();
-		 super.setCanvas(canvasModel);
-		 for (final Observer observer : observers) {
-		 ((Factory) getCanvas()).addObserver(observer);
-		 }
-		 ((Factory) getCanvas()).notifyObservers();
+		final List<Observer> observers = this.factoryModel.getObservers();
+		super.setCanvas(canvasModel);
+		this.factoryModel = (Factory) canvasModel;
+		for (final Observer observer : observers) {
+			this.factoryModel.addObserver(observer);
+		}
+		this.factoryModel.notifyObservers();
 	}
-	
+
 }

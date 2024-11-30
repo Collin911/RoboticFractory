@@ -185,8 +185,9 @@ public class Factory extends Component implements Canvas, Observable {
 		return positionAvailable;
 	}
 	
-	public Style getComponentStyle() {
-		return getStyle();
+	@JsonIgnore
+	public ComponentStyle getComponentStyle() {
+		return (ComponentStyle)getStyle();
 	}
 	
 	@JsonIgnore
@@ -216,15 +217,9 @@ public class Factory extends Component implements Canvas, Observable {
 		return false;
 	}
 	
-	// A series of setters and getters to comply with REST specifications
-	
-
-	public boolean getsimulationStarted() {
-		return this.simulationStarted;
-	}
-	
-	public void setSimulationStarted(boolean flag) {
+	public void setSimulationStatus(boolean flag) {
 		this.simulationStarted = flag;
+		return;
 	}
 	
 }
