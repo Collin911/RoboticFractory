@@ -171,11 +171,18 @@ public class RemoteSimulatorController extends SimulatorController{
 	}
 	
 	private void updateLocalFactoryWith(Factory fac) {
-		// Use this method to update the local model so that you won't lose your observer
+		// Use this method to update the local model so that you won't lose your observer/notifier
+		
+		//SRP setup
+		fac.setNotifier(this.factoryModel.getNotifier());
+		
+		// Vanilla setup
+		/*
 		for(Observer ob : this.factoryModel.getObservers()) {
 			fac.addObserver(ob);
 		}
 		this.factoryModel = fac;
+		*/
 		return;
 	}
 	

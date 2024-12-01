@@ -30,11 +30,14 @@ public class Factory extends Component implements Canvas, Observable {
 	//@JsonManagedReference
     private final List<Component> components;
 
-	@JsonIgnore
-	private transient List<Observer> observers;
+	//@JsonIgnore
+	//private transient List<Observer> observers;
 
 	@JsonIgnore
 	private transient boolean simulationStarted;
+	
+	@JsonIgnore 
+	private transient ObserverNotifier notifier;
 	
 	public Factory() { //no-argument constructor as required by Jackson
 		this(0, 0, null);
@@ -46,34 +49,59 @@ public class Factory extends Component implements Canvas, Observable {
 		super(null, new RectangularShape(0, 0, width, height), name);
 		
 		components = new ArrayList<>();
-		observers = null;
 		simulationStarted = false;
+		notifier = new ObserverNotifier();
+	}
+	
+	@JsonIgnore
+	public ObserverNotifier getNotifier() {
+		return this.notifier;
+	}
+	
+	@JsonIgnore
+	public boolean setNotifier(ObserverNotifier ntfr) {
+		this.notifier = ntfr;
+		return true;
 	}
 	
 	@JsonIgnore
 	public List<Observer> getObservers() {
+		return this.notifier.getObservers();		
+		/*
 		if (observers == null) {
 			observers = new ArrayList<>();
-		}
-		
+		}		
 		return observers;
+		*/
 	}
 
 	@Override
 	public boolean addObserver(Observer observer) {
-		return getObservers().add(observer);
+		 if (notifier != null) {
+			 return notifier.addObserver(observer);
+		 }
+		 return false;
+		//return getObservers().add(observer);
 	}
 
 	@Override
 	public boolean removeObserver(Observer observer) {
-		return getObservers().remove(observer);
+		if (notifier != null) {
+			 return notifier.removeObserver(observer);
+		 }
+		return false;
+		//return getObservers().remove(observer);
 	}
 	
 	public void notifyObservers() {
-		for (final Observer observer : getObservers()) {
-			observer.modelChanged();
+		 if (notifier != null) {
+			 notifier.notifyObservers();
+		 }
+		// for (final Observer observer : getObservers()) {
+		// observer.modelChanged();
+		// }
 		}
-	}
+
 	
 	public boolean addComponent(final Component component) {
 		if (components.add(component)) {
