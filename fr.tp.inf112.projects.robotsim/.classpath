@@ -13,5 +13,6 @@
 	<classpathentry kind="lib" path="/Users/collinxia/git/RoboticFactorySimu/fr.tp.inf112.projects.robotsim/libs/jackson-annotations-2.17.2.jar"/>
 	<classpathentry kind="lib" path="/Users/collinxia/git/RoboticFactorySimu/fr.tp.inf112.projects.robotsim/libs/jackson-core-2.17.2.jar"/>
 	<classpathentry kind="lib" path="/Users/collinxia/git/RoboticFactorySimu/fr.tp.inf112.projects.robotsim/libs/jackson-databind-2.17.2.jar"/>
+	<classpathentry kind="lib" path="/Users/collinxia/git/RoboticFactorySimu/fr.tp.inf112.projects.robotsim/libs/kafka-clients-3.8.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
