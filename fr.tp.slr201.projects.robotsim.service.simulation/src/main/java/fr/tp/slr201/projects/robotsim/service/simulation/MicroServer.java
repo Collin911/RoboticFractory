@@ -20,10 +20,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -44,6 +46,7 @@ import fr.tp.inf112.projects.robotsim.model.Factory;
 import fr.tp.inf112.projects.robotsim.model.RemoteFileCanvasChooser;
 import fr.tp.inf112.projects.robotsim.model.RemotePersistenceManager;
 import fr.tp.inf112.projects.robotsim.model.shapes.PositionedShape;
+import fr.tp.inf112.projects.robotsim.model.FactoryModelChangedNotifier;
 
 @SpringBootApplication
 @RestController
@@ -57,6 +60,10 @@ public class MicroServer {
 	private Map<Factory, Thread> factoryThreadMap;
 	final private RemoteFileCanvasChooser canvasChooser;
 	final private RemotePersistenceManager remotePersistMgr;
+	// Kafka support
+	@Autowired
+	private KafkaTemplate<String, Factory> simulationEventTemplate;
+
 
 	public static void main(String[] args) {
 		SpringApplication.run(MicroServer.class, args);
@@ -72,6 +79,7 @@ public class MicroServer {
 
 	
 	@GetMapping("/hello")
+	// For debugging purpose only
     public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
       return String.format("Hello %s!", name);
     }
@@ -87,6 +95,10 @@ public class MicroServer {
 			Runnable reqProcessor = new simulationRequestProcessor(factory);
             Thread simulationThread = new Thread(reqProcessor);
             simulationThread.start();
+            // Added Kafka support
+	    	final FactoryModelChangedNotifier notifier = new
+	    			 KafkaFactoryChangeNotifier(factory, simulationEventTemplate);
+	    			factory.setNotifier(notifier);
             
             simuProcessorList.add(simulationThread);
             factoryThreadMap.put(factory, simulationThread);
@@ -205,6 +217,7 @@ class simulationRequestProcessor implements Runnable {
 	    @Override
 	    public void run() {
 	    	factory.startSimulation();
+
 	    	return;	    	
 	    }
 	}

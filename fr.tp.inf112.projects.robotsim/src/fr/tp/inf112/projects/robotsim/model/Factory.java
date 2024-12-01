@@ -37,7 +37,7 @@ public class Factory extends Component implements Canvas, Observable {
 	private transient boolean simulationStarted;
 	
 	@JsonIgnore 
-	private transient ObserverNotifier notifier;
+	private transient FactoryModelChangedNotifier notifier;
 	
 	public Factory() { //no-argument constructor as required by Jackson
 		this(0, 0, null);
@@ -54,19 +54,24 @@ public class Factory extends Component implements Canvas, Observable {
 	}
 	
 	@JsonIgnore
-	public ObserverNotifier getNotifier() {
+	public FactoryModelChangedNotifier getNotifier() {
 		return this.notifier;
 	}
 	
 	@JsonIgnore
-	public boolean setNotifier(ObserverNotifier ntfr) {
-		this.notifier = ntfr;
+	public boolean setNotifier(FactoryModelChangedNotifier notifier2) {
+		this.notifier = notifier2;
 		return true;
 	}
 	
 	@JsonIgnore
 	public List<Observer> getObservers() {
-		return this.notifier.getObservers();		
+		if(this.notifier instanceof ObserverNotifier) {
+			return ((ObserverNotifier)this.notifier).getObservers();
+		}
+		else {
+			return null;
+		}		
 		/*
 		if (observers == null) {
 			observers = new ArrayList<>();

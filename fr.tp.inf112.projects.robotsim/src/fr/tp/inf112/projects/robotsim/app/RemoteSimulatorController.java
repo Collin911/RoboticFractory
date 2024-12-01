@@ -8,6 +8,7 @@ import fr.tp.inf112.projects.canvas.model.CanvasPersistenceManager;
 import fr.tp.inf112.projects.canvas.model.impl.BasicVertex;
 import fr.tp.inf112.projects.robotsim.model.Component;
 import fr.tp.inf112.projects.robotsim.model.Factory;
+import fr.tp.inf112.projects.robotsim.model.ObserverNotifier;
 import fr.tp.inf112.projects.robotsim.model.PersistenceServer;
 import fr.tp.inf112.projects.robotsim.model.shapes.PositionedShape;
 
@@ -21,6 +22,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.logging.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
@@ -34,6 +37,7 @@ public class RemoteSimulatorController extends SimulatorController{
 	private static final int CHECK = 3;
 	private static final Logger LOGGER = Logger.getLogger(RemoteSimulatorController.class.getName());
 	private Thread canvasDeamon;
+	private ObserverNotifier localNotifier;
 	
 	public RemoteSimulatorController(final CanvasPersistenceManager persistenceManager) {
 		this(null, persistenceManager);
@@ -55,6 +59,33 @@ public class RemoteSimulatorController extends SimulatorController{
             	
             }
         });
+		this.localNotifier = new ObserverNotifier();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean addObserver(final Observer observer) {
+		if (factoryModel != null) {
+			// doing a favor for the factory 
+			// this would make this application easy to revert to non-kafka version
+			factoryModel.addObserver(observer);
+		}
+		
+		return localNotifier.addObserver(observer);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean removeObserver(final Observer observer) {
+		if (factoryModel != null) {
+			factoryModel.removeObserver(observer);
+		}
+		
+		return localNotifier.removeObserver(observer);
 	}
 
 	/**
@@ -62,8 +93,14 @@ public class RemoteSimulatorController extends SimulatorController{
 	 */
 	@Override
 	public void startAnimation() {
+		// animationControl() method is created for convenience
+		// So that redundancy of the request part could be eliminated
 		this.animationControl(START);
-		canvasDeamon.start();
+		// Polling micro-service
+		//canvasDeamon.start();
+		// Kafka approach
+		FactorySimulationEventConsumer consumer = new FactorySimulationEventConsumer(this);
+		consumer.consumeMessages();
 	}
 
 	/**
@@ -117,14 +154,11 @@ public class RemoteSimulatorController extends SimulatorController{
 				ObjectMapper objectMapper = new ObjectMapper();
 				returnVal = objectMapper.readValue(response.body(), boolean.class);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				LOGGER.severe(e.getMessage() + e.getStackTrace());
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				LOGGER.severe(e.getMessage() + e.getStackTrace());
 			}
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
 			LOGGER.severe(e.getMessage() + e.getStackTrace());
 		}		
 		
@@ -139,22 +173,7 @@ public class RemoteSimulatorController extends SimulatorController{
 			try {
 				HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 				// System.out.println(response.body()); // For debug only
-				ObjectMapper objectMapper = new ObjectMapper();
-				// Adding polymorphic support
-				PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
-						 .allowIfSubType(PositionedShape.class.getPackageName())
-						 .allowIfSubType(Component.class.getPackageName())
-						 .allowIfSubType(BasicVertex.class.getPackageName())
-						 .allowIfSubType(ArrayList.class.getName())
-						 .allowIfSubType(LinkedHashSet.class.getName())
-						 .allowIfSubType("fr.tp.inf112.projects.canvas.model.impl")
-						 .allowIfSubType("fr.tp.inf112.projects.robotsim.model")
-						 .allowIfBaseType("fr.tp.inf112.projects.robotsim.model")
-					.build();
-				objectMapper.activateDefaultTyping(typeValidator, 
-						 ObjectMapper.DefaultTyping.NON_FINAL);
-
-				fac = objectMapper.readValue(response.body(), Factory.class);
+				fac = mapJsonToFactory(response.body());
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				LOGGER.severe(e.getMessage());
@@ -167,6 +186,27 @@ public class RemoteSimulatorController extends SimulatorController{
 			LOGGER.severe(e.getMessage() + e.getStackTrace());
 		}
 		fac.setSimulationStatus(isAnimationRunning());
+		return fac;
+	}
+	
+	private Factory mapJsonToFactory(String facAsString) throws JsonMappingException, JsonProcessingException {
+		// Separated as an independent method for reusability
+		Factory fac = null;
+		ObjectMapper objectMapper = new ObjectMapper();
+		// Adding polymorphic support
+		PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
+				 .allowIfSubType(PositionedShape.class.getPackageName())
+				 .allowIfSubType(Component.class.getPackageName())
+				 .allowIfSubType(BasicVertex.class.getPackageName())
+				 .allowIfSubType(ArrayList.class.getName())
+				 .allowIfSubType(LinkedHashSet.class.getName())
+				 .allowIfSubType("fr.tp.inf112.projects.canvas.model.impl")
+				 .allowIfSubType("fr.tp.inf112.projects.robotsim.model")
+				 .allowIfBaseType("fr.tp.inf112.projects.robotsim.model")
+			.build();
+		objectMapper.activateDefaultTyping(typeValidator, 
+				 ObjectMapper.DefaultTyping.NON_FINAL);
+		fac = objectMapper.readValue(facAsString, Factory.class);
 		return fac;
 	}
 	
@@ -205,7 +245,27 @@ public class RemoteSimulatorController extends SimulatorController{
 	* {@inheritDoc}
 	*/
 	@Override
-	public void setCanvas(final Canvas canvasModel) {
+	public void setCanvas(final Canvas canvasModel) {		
+		final List<Observer> observers = this.factoryModel.getObservers();
+		super.setCanvas(canvasModel);
+		this.factoryModel = (Factory) canvasModel;
+		for (final Observer observer : observers) {
+			this.factoryModel.addObserver(observer);
+		}
+		this.factoryModel.notifyObservers();
+	}
+	
+	public void setCanvas(final String factoryAsString) {
+		// Overloading this method to adapt Json String as a parameter
+		// This version handles parsing job by calling mapJsonToFactory() method
+		Factory fac = null;
+		try {
+			fac = this.mapJsonToFactory(factoryAsString);
+		} catch (JsonProcessingException e) {
+			LOGGER.severe(e.getMessage() + e.getStackTrace());
+			return;
+		}
+		Canvas canvasModel = (Canvas) fac;
 		final List<Observer> observers = this.factoryModel.getObservers();
 		super.setCanvas(canvasModel);
 		this.factoryModel = (Factory) canvasModel;
